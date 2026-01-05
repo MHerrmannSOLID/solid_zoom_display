@@ -17,8 +17,8 @@ class _ImageDisplayDemoState extends State<ImageDisplayDemo>
     with TickerProviderStateMixin {
   ui.Image? _image;
   bool _isLoading = true;
+  DisplayProjector _projector = EmptyProjector();
 
-  @override
   void initState() {
     super.initState();
     _loadImage();
@@ -34,7 +34,12 @@ class _ImageDisplayDemoState extends State<ImageDisplayDemo>
         final frame = await codec.getNextFrame();
         _image = frame.image;
         _isLoading = false;
-        setState(() {});
+        _projector = SampleImagePainter(_image!);
+        setState(() {
+          // After the first frame is rendered, scale to fit
+          WidgetsBinding.instance
+              .addPostFrameCallback((_) => _projector.scaleToFit());
+        });
       }
     } catch (e) {
       print('Error loading image: $e');
@@ -46,7 +51,7 @@ class _ImageDisplayDemoState extends State<ImageDisplayDemo>
   Widget build(BuildContext context) {
     return DisplayEmbedding(
       child: ZoomDisplay(
-        projector: _isLoading ? EmptyProjector() : SampleImagePainter(_image!),
+        projector: _projector,
         vsync: this,
         backgroundPaint: Paint()
           ..color = const Color.fromARGB(0xff, 0x2B, 0x2D, 0x42),
