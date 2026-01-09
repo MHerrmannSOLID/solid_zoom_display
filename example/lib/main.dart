@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:solid_zoom_display/solid_zoom_display.dart';
-import 'package:solid_zoom_display_example/src/sample_fiducial_map.dart';
-import 'package:solid_zoom_display_example/src/sample_touch_interaction.dart';
-import 'src/sample_mouse_interaction.dart';
+import 'package:solid_zoom_display_example/src/fiducial_map_example.dart';
+import 'package:solid_zoom_display_example/src/models/sample_fiducial_map.dart';
+import 'package:solid_zoom_display_example/src/interactions/sample_touch_interaction.dart';
+import 'package:solid_zoom_display_example/src/multi_layer_example.dart';
+import 'src/interactions/sample_mouse_interaction.dart';
 
 void main() {
   runApp(const MyApp());
@@ -16,46 +17,47 @@ class MyApp extends StatefulWidget {
 }
 
 class MyAppState extends State<MyApp> with TickerProviderStateMixin {
+  late final TabController _tabController;
+
+  @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(length: 2, vsync: this);
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      home: Scaffold(
-        appBar: AppBar(
-          title: const Text('SOLID zoom display example'),
-        ),
-        body: LayoutBuilder(builder: (context, constraints) {
-          return Center(
-            child: SizedBox(
-              width: constraints.maxWidth * 0.75,
-              height: constraints.maxHeight * 0.80,
-              child: Column(
-                children: [
-                  Text('This is a zoom display example',
-                      style: TextStyle(fontSize: constraints.maxHeight * 0.03)),
-                  Container(
-                    decoration: BoxDecoration(
-                        border: Border.all(color: Colors.black, width: 1)),
-                    child: SizedBox(
-                      width: constraints.maxWidth * 0.75,
-                      height: constraints.maxHeight * 0.75,
-                      child: ZoomDisplay(
-                        projector: SampleFiducialMap(),
-                        vsync: this,
-                        backgroundPaint: Paint()
-                          ..color =
-                              const Color.fromARGB(0xff, 0x2B, 0x2D, 0x42),
-                        selectionProjector: MovingDashBoxProjector(vsync: this),
-                        mouseInteraction: SampleMouseInteraction(),
-                        touchInteraction: SampleTouchInteraction(),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          );
-        }),
+        home: Scaffold(
+      appBar: AppBar(
+        title: const Text('SOLID zoom display example'),
       ),
-    );
+      body: Column(
+        children: <Widget>[
+          TabBar.secondary(
+            controller: _tabController,
+            tabs: const <Widget>[
+              Tab(text: 'Overview'),
+              Tab(text: 'Specifications'),
+            ],
+          ),
+          Expanded(
+            child: TabBarView(
+              controller: _tabController,
+              children: <Widget>[
+                FiducualMapExample(),
+                MyZoomDisplay(),
+              ],
+            ),
+          ),
+        ],
+      ),
+    ));
   }
 }

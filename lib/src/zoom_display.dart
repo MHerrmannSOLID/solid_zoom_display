@@ -16,8 +16,9 @@ class ZoomDisplay extends StatelessWidget {
     this.touchInteraction,
     SelectionOverlayProjector? selectionProjector,
     this.contextMenuBuilder,
+    this.additionalProjectors,
   })  : _selectionProjector = selectionProjector ?? BoxSelectionProjector(),
-        _backgroundPaint = backgroundPaint ??( Paint()..color = Colors.white);
+        _backgroundPaint = backgroundPaint ?? (Paint()..color = Colors.white);
 
   final Paint _backgroundPaint;
   DisplayProjector projector;
@@ -27,19 +28,22 @@ class ZoomDisplay extends StatelessWidget {
   final TickerProvider vsync;
   final SelectionOverlayProjector _selectionProjector;
   final ContextMenuBuilder? contextMenuBuilder;
+  final List<DisplayProjector>? additionalProjectors;
 
   @override
   Widget build(BuildContext context) {
-    return ContextMenuRegion(
-      contextMenuBuilder: contextMenuBuilder,
-      child: CanvasWidget(
-        backgroundPaint: _backgroundPaint,
-        selectionProjector: _selectionProjector,
-        projector: projector,
-        mouseInteraction: mouseInteraction,
-        touchInteraction: touchInteraction,
-
-        vsync: vsync,
+    return RepaintBoundary(
+      child: ContextMenuRegion(
+        contextMenuBuilder: contextMenuBuilder,
+        child: CanvasWidget(
+          backgroundPaint: _backgroundPaint,
+          selectionProjector: _selectionProjector,
+          projector: projector,
+          mouseInteraction: mouseInteraction,
+          touchInteraction: touchInteraction,
+          additionalProjectors: additionalProjectors,
+          vsync: vsync,
+        ),
       ),
     );
   }

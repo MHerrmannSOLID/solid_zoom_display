@@ -20,15 +20,17 @@ class CanvasWidget extends LeafRenderObjectWidget {
     SelectionOverlayProjector? selectionProjector,
     ZoomController? zoomController,
     required this.backgroundPaint,
+    this.additionalProjectors,
   })  : _selectionProjector = selectionProjector ?? BoxSelectionProjector(),
         _zoomController = zoomController ??
             ZoomController(
-                animationController:
-                    AnimationController(vsync: vsync, duration: const Duration(seconds: 2)),
+                animationController: AnimationController(
+                    vsync: vsync, duration: const Duration(seconds: 2)),
                 screenFitMargin: 0.01);
 
   final Paint backgroundPaint;
   final DisplayProjector projector;
+  final List<DisplayProjector>? additionalProjectors;
   final DisplayMouseInteraction? mouseInteraction;
   final DisplayTouchInteraction? touchInteraction;
   final TickerProvider vsync;
@@ -37,21 +39,40 @@ class CanvasWidget extends LeafRenderObjectWidget {
   final SelectionOverlayProjector _selectionProjector;
   ContextMenuInteraction? _contextMenuInteraction;
 
-  set contextMenuInteraction(ContextMenuInteraction value) => _contextMenuInteraction = value;
+  set contextMenuInteraction(ContextMenuInteraction value) =>
+      _contextMenuInteraction = value;
 
   @override
   RenderObject createRenderObject(BuildContext context) {
     var gestureSettings = MediaQuery.maybeGestureSettingsOf(context);
-    return CanvasWidgetRenderer(projector, gestureSettings, mouseInteraction, touchInteraction,
-        _selectionProjector, _zoomController, backgroundPaint,
+    final renderer = CanvasWidgetRenderer(
+        projector,
+        gestureSettings,
+        mouseInteraction,
+        touchInteraction,
+        _selectionProjector,
+        _zoomController,
+        backgroundPaint,
         interactionController: interactionController,
         contextMenuInteraction: _contextMenuInteraction);
+
+    // Add additional projectors if provided
+    if (additionalProjectors != null) {
+      for (final proj in additionalProjectors!) {
+        renderer.addProjectorLayer(proj);
+      }
+    }
+
+    return renderer;
   }
 
   @override
-  void updateRenderObject(BuildContext context, covariant CanvasWidgetRenderer renderObject) {
+  void updateRenderObject(
+      BuildContext context, covariant CanvasWidgetRenderer renderObject) {
     renderObject.projector = projector;
     renderObject.backgroundPaint = backgroundPaint;
+    // Note: additionalProjectors changes are not handled in updates
+    // Users should recreate the widget if layers need to change
   }
 }
 
@@ -77,7 +98,8 @@ class CanvasWidgetRenderer extends RenderProxyBoxWithHitTestBehavior
                 zoomController: _zoomController) {
     _setNewProjector();
     _zoomController..addListener(markNeedsPaint);
-    _interactionController.setSelectionOverlayRepaintCallback(_onSelectionOverlayChanged);
+    _interactionController
+        .setSelectionOverlayRepaintCallback(_onSelectionOverlayChanged);
     _interactionController.contextMenuInteraction = contextMenuInteraction;
     super.behavior = HitTestBehavior.translucent;
     mouseInteraction?.interactionController = _interactionController;
@@ -93,13 +115,16 @@ class CanvasWidgetRenderer extends RenderProxyBoxWithHitTestBehavior
   }
 
   late Picture _picture;
+  final List<_ProjectorLayer> _additionalLayers = [];
   late FragmentShader? _shader;
   late Paint _backgroundPaint;
   DisplayProjector _projector;
 
   set backgroundPaint(Paint value) {
     _backgroundPaint = value;
-    _shader = (_backgroundPaint.shader is FragmentShader)?_backgroundPaint.shader as FragmentShader:null;
+    _shader = (_backgroundPaint.shader is FragmentShader)
+        ? _backgroundPaint.shader as FragmentShader
+        : null;
     markNeedsPaint();
   }
 
@@ -117,6 +142,39 @@ class CanvasWidgetRenderer extends RenderProxyBoxWithHitTestBehavior
     _projector.copyToContext(canvas);
     _picture = pictureRecorder.endRecording();
     markNeedsLayout();
+  }
+
+  /// Add an additional projector layer (e.g., for sprites, overlays)
+  /// Layers are drawn in the order they are added (on top of main projector)
+  void addProjectorLayer(DisplayProjector projector) {
+    final layer = _ProjectorLayer(projector, () => markNeedsPaint());
+    _additionalLayers.add(layer);
+    projector.addListener(layer._updatePicture);
+    layer._updatePicture();
+    markNeedsPaint();
+  }
+
+  /// Remove a projector layer
+  void removeProjectorLayer(DisplayProjector projector) {
+    _additionalLayers.removeWhere((layer) {
+      if (layer.projector == projector) {
+        projector.removeListener(layer._updatePicture);
+        layer.dispose();
+        return true;
+      }
+      return false;
+    });
+    markNeedsPaint();
+  }
+
+  /// Clear all additional projector layers
+  void clearProjectorLayers() {
+    for (final layer in _additionalLayers) {
+      layer.projector.removeListener(layer._updatePicture);
+      layer.dispose();
+    }
+    _additionalLayers.clear();
+    markNeedsPaint();
   }
 
   final InteractionController _interactionController;
@@ -181,13 +239,15 @@ class CanvasWidgetRenderer extends RenderProxyBoxWithHitTestBehavior
       zoomFactor.toDouble(),
       _zoomController.zoomFactor.toDouble(),
     );
-    final trafoTranslate = Matrix4.identity()..translate(totalOffset.dx, totalOffset.dy);
+    final trafoTranslate = Matrix4.identity()
+      ..translate(totalOffset.dx, totalOffset.dy);
     //_backgroundPaint.shader = _shader;
     context.canvas.drawRect(Rect.fromLTWH(offset.dx, offset.dy, width, height),
-        (_shader!=null)? (Paint()..shader = _shader):_backgroundPaint);
+        (_shader != null) ? (Paint()..shader = _shader) : _backgroundPaint);
     context.clipRectAndPaint(
-        Rect.fromLTWH(offset.dx, offset.dy, size.width, size.height), Clip.hardEdge, paintBounds,
-        () {
+        Rect.fromLTWH(offset.dx, offset.dy, size.width, size.height),
+        Clip.hardEdge,
+        paintBounds, () {
       context.pushTransform(
         false,
         Offset.zero,
@@ -196,17 +256,29 @@ class CanvasWidgetRenderer extends RenderProxyBoxWithHitTestBehavior
           false,
           Offset.zero,
           trafosScale,
-          (context, offset) => context.canvas.drawPicture(_picture),
+          (context, offset) {
+            // Draw main projector picture
+            context.canvas.drawPicture(_picture);
+
+            // Draw additional layer pictures
+            for (final layer in _additionalLayers) {
+              if (layer.picture != null) {
+                context.canvas.drawPicture(layer.picture!);
+              }
+            }
+          },
         ),
       );
     });
   }
 
   @override
-  PointerEnterEventListener? get onEnter => _interactionController.handleMouseEnter;
+  PointerEnterEventListener? get onEnter =>
+      _interactionController.handleMouseEnter;
 
   @override
-  PointerExitEventListener? get onExit => _interactionController.handleMouseExit;
+  PointerExitEventListener? get onExit =>
+      _interactionController.handleMouseExit;
 
   @override
   bool get validForMouseTracker => true;
@@ -217,8 +289,32 @@ class CanvasWidgetRenderer extends RenderProxyBoxWithHitTestBehavior
 
   void _prepareShaderData(Offset zoomOffset, num zoomFactor) {
     if (_shader == null) return;
-    _shader!..setFloat(0, _zoomController.zoomOffset.dx  )
-      ..setFloat(1, _zoomController.zoomOffset.dy )
+    _shader!
+      ..setFloat(0, _zoomController.zoomOffset.dx)
+      ..setFloat(1, _zoomController.zoomOffset.dy)
       ..setFloat(2, _zoomController.zoomFactor.toDouble());
+  }
+}
+
+/// Helper class to manage additional projector layers
+/// Each layer maintains its own Picture cache
+class _ProjectorLayer {
+  final DisplayProjector projector;
+  final VoidCallback onNeedsPaint;
+  Picture? picture;
+
+  _ProjectorLayer(this.projector, this.onNeedsPaint);
+
+  void _updatePicture() {
+    final recorder = PictureRecorder();
+    final canvas = Canvas(recorder);
+    projector.copyToContext(canvas);
+    picture = recorder.endRecording();
+
+    onNeedsPaint(); // Trigger repaint when layer updates
+  }
+
+  void dispose() {
+    picture?.dispose();
   }
 }
