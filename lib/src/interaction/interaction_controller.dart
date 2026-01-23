@@ -134,7 +134,7 @@ class InteractionController extends ChangeNotifier {
   }
 
   void _handleMouseUp(PointerUpEvent event) {
-    if (!_hasMouseEvents) return;
+    //if (!_hasMouseEvents) return;
     _displayMouseInteraction
         .onMouseUp(MouseEvent.fromPointerEvent(event, _getImgPos(event)));
     _displayTouchInteraction.onTouchEnd(TouchEvent.fromPointerEvent(event));
