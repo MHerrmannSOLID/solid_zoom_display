@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:solid_zoom_display_example/src/fiducial_map_example.dart';
+import 'package:solid_zoom_display_example/src/image_view/image_display_demo.dart';
 import 'package:solid_zoom_display_example/src/models/sample_fiducial_map.dart';
 import 'package:solid_zoom_display_example/src/interactions/sample_touch_interaction.dart';
 import 'package:solid_zoom_display_example/src/multi_layer_example.dart';
@@ -9,7 +10,7 @@ void main() {
   runApp(const MyApp());
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
   const MyApp({super.key});
 
   @override
@@ -22,7 +23,7 @@ class MyAppState extends State<MyApp> with TickerProviderStateMixin {
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 2, vsync: this);
+    _tabController = TabController(length: 3, vsync: this);
   }
 
   @override
@@ -45,6 +46,7 @@ class MyAppState extends State<MyApp> with TickerProviderStateMixin {
             tabs: const <Widget>[
               Tab(text: 'Overview'),
               Tab(text: 'Specifications'),
+              Tab(text: 'Image'),
             ],
           ),
           Expanded(
@@ -53,6 +55,7 @@ class MyAppState extends State<MyApp> with TickerProviderStateMixin {
               children: <Widget>[
                 FiducualMapExample(),
                 MyZoomDisplay(),
+                ImageDisplayDemo()
               ],
             ),
           ),

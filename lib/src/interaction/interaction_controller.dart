@@ -32,16 +32,21 @@ class InteractionController extends ChangeNotifier {
           ..trackpadScrollCausesScale = false
           ..gestureSettings = gestureSettings
           ..dragStartBehavior = DragStartBehavior.start,
-        _dblTapRecognizer = DoubleTapGestureRecognizer()..gestureSettings = gestureSettings,
-        _mouseOverlayBehaviour = MouseOverlayBehaviour(overlayProjector: mouseSelectionProjector),
-        _displayTouchInteraction = touchInteraction ?? DisplayTouchInteraction(),
-        _displayMouseInteraction = mouseInteraction ?? DisplayMouseInteraction() {
+        _dblTapRecognizer = DoubleTapGestureRecognizer()
+          ..gestureSettings = gestureSettings,
+        _mouseOverlayBehaviour =
+            MouseOverlayBehaviour(overlayProjector: mouseSelectionProjector),
+        _displayTouchInteraction =
+            touchInteraction ?? DisplayTouchInteraction(),
+        _displayMouseInteraction =
+            mouseInteraction ?? DisplayMouseInteraction() {
     _displayMouseInteraction.interactionController = this;
     _wireGestureEvents();
   }
 
   set contextMenuInteraction(ContextMenuInteraction? contextMenuInteraction) =>
-    _contextMenuInteraction = contextMenuInteraction ?? ContextMenuInteraction();
+      _contextMenuInteraction =
+          contextMenuInteraction ?? ContextMenuInteraction();
 
   void showContextMenu() =>
       _contextMenuInteraction.show(this, _recentMouseEvent.global.toOffset());
@@ -50,25 +55,28 @@ class InteractionController extends ChangeNotifier {
 
   bool get isContextMenuShown => _contextMenuInteraction.isOpen;
 
-  void startSelection(Point<num> startPosition) => _mouseOverlayBehaviour
-      .startSelectionAt(Point<int>(startPosition.x.toInt(), startPosition.y.toInt()));
+  void startSelection(Point<num> startPosition) =>
+      _mouseOverlayBehaviour.startSelectionAt(
+          Point<int>(startPosition.x.toInt(), startPosition.y.toInt()));
 
   Selection stopSelecting(Point<num> position) {
     final displaySelection = _mouseOverlayBehaviour.stopSelection();
-    var topLeft = zoomController.asImagePosition(Offset(displaySelection.left.toDouble(),
-                  displaySelection.top.toDouble()));
-    var bottomRight = zoomController.asImagePosition(Offset(displaySelection.right.toDouble(),
-                  displaySelection.bottom.toDouble()));
+    var topLeft = zoomController.asImagePosition(Offset(
+        displaySelection.left.toDouble(), displaySelection.top.toDouble()));
+    var bottomRight = zoomController.asImagePosition(Offset(
+        displaySelection.right.toDouble(), displaySelection.bottom.toDouble()));
     var imgSelection = Rectangle.fromPoints(topLeft, bottomRight);
-    return Selection(display:  displaySelection, image: imgSelection );
+    return Selection(display: displaySelection, image: imgSelection);
   }
 
-  void setSelectionOverlayRepaintCallback(VoidCallback onSelectionOverlayChanged) {
+  void setSelectionOverlayRepaintCallback(
+      VoidCallback onSelectionOverlayChanged) {
     _mouseOverlayBehaviour.addListener(onSelectionOverlayChanged);
   }
 
   void drawMouseBehaviourOverlay(Canvas canvas, Offset offset) =>
-      _mouseOverlayBehaviour.selectionOverlayProjector.drawSelectionOverlay(canvas, offset);
+      _mouseOverlayBehaviour.selectionOverlayProjector
+          .drawSelectionOverlay(canvas, offset);
 
   void _wireGestureEvents() {
     _scaleGestureRecognizer.onStart = (event) => handleScaleStart(event);
@@ -77,19 +85,18 @@ class InteractionController extends ChangeNotifier {
     _dblTapRecognizer.onDoubleTapDown = (event) => handleDoubleTapDown(event);
   }
 
-  Point _getImgPos(PointerEvent event) => zoomController.asImagePosition(event.localPosition);
+  Point _getImgPos(PointerEvent event) =>
+      zoomController.asImagePosition(event.localPosition);
 
   void handleEvent(PointerEvent event) {
     if (event is PointerDownEvent) _handlePointerDown(event);
     if (event is PointerMoveEvent) {
-      _onPointerMove(
-          MouseEvent.fromPointerEvent(event, _getImgPos(event)));
+      _onPointerMove(MouseEvent.fromPointerEvent(event, _getImgPos(event)));
     }
     if (event is PointerSignalEvent) _handlePointerSignal(event);
     if (event is PointerUpEvent) _handleMouseUp(event);
     if (event is PointerHoverEvent) {
-      _handleMouseHover(
-          MouseEvent.fromPointerEvent(event,_getImgPos(event)));
+      _handleMouseHover(MouseEvent.fromPointerEvent(event, _getImgPos(event)));
     }
     if (event is PointerPanZoomStartEvent) _handlePointerPanZoomStart(event);
   }
@@ -97,8 +104,8 @@ class InteractionController extends ChangeNotifier {
   void _handlePointerDown(PointerDownEvent event) {
     _dblTapRecognizer.addPointer(event);
     _scaleGestureRecognizer.addPointer(event);
-    _handleMouseDown(
-        MouseEvent.fromPointerEvent(event, _getImgPos(event)));
+    _handleMouseDown(MouseEvent.fromPointerEvent(event, _getImgPos(event)));
+    _displayTouchInteraction.onTouchStart(TouchEvent.fromPointerEvent(event));
   }
 
   void _handleMouseDown(MouseEvent event) {
@@ -107,7 +114,7 @@ class InteractionController extends ChangeNotifier {
   }
 
   void _handlePointerPanZoomStart(PointerPanZoomStartEvent event) {
-    _dblTapRecognizer.addPointerPanZoom(event);  // do we need this  ????
+    _dblTapRecognizer.addPointerPanZoom(event); // do we need this  ????
     _scaleGestureRecognizer.addPointerPanZoom(event);
   }
 
@@ -122,14 +129,15 @@ class InteractionController extends ChangeNotifier {
 
   void _handlePointerSignal(PointerSignalEvent event) {
     if (!_hasMouseEvents || event is! PointerScrollEvent) return;
-    _displayMouseInteraction.onMouseScroll(
-        MouseEvent.fromScrollEvent(event, _getImgPos(event)));
+    _displayMouseInteraction
+        .onMouseScroll(MouseEvent.fromScrollEvent(event, _getImgPos(event)));
   }
 
   void _handleMouseUp(PointerUpEvent event) {
     if (!_hasMouseEvents) return;
-    _displayMouseInteraction.onMouseUp(
-        MouseEvent.fromPointerEvent(event, _getImgPos(event)));
+    _displayMouseInteraction
+        .onMouseUp(MouseEvent.fromPointerEvent(event, _getImgPos(event)));
+    _displayTouchInteraction.onTouchEnd(TouchEvent.fromPointerEvent(event));
   }
 
   void _handleMouseHover(MouseEvent event) {
@@ -141,13 +149,13 @@ class InteractionController extends ChangeNotifier {
   void handleScaleStart(ScaleStartDetails details) {
     if (_hasMouseEvents) return;
     _displayTouchInteraction.onScaleStart(TouchEvent.fromScaleStart(details));
-    _displayTouchInteraction.onTouchStart(TouchEvent.fromScaleStart(details));
+    // _displayTouchInteraction.onTouchStart(TouchEvent.fromScaleStart(details));
   }
 
   void handleScaleStop(ScaleEndDetails details) {
     if (_hasMouseEvents) return;
     _displayTouchInteraction.onScaleEnd(TouchEvent.fromScaleStop(details));
-    _displayTouchInteraction.onTouchEnd(TouchEvent.fromScaleStop(details));
+    //_displayTouchInteraction.onTouchEnd(TouchEvent.fromScaleStop(details));
   }
 
   void handleScaleUpdate(ScaleUpdateDetails details) {
