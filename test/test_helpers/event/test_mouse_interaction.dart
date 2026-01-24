@@ -6,6 +6,7 @@ class TestMouseInteraction implements DisplayMouseInteraction {
   final List<MouseEvent> onMouseMoveEventData = <MouseEvent>[];
   final List<MouseEvent> onMouseScrollEventData = <MouseEvent>[];
   final List<MouseEvent> onMouseUpEventData = <MouseEvent>[];
+  final List<MouseEvent> onMouseLongClickEventData = <MouseEvent>[];
 
   InteractionController? _interactionController;
 
@@ -22,7 +23,11 @@ class TestMouseInteraction implements DisplayMouseInteraction {
   void onMouseUp(MouseEvent event) => onMouseUpEventData.add(event);
 
   @override
-  set interactionController(InteractionController? value) => _interactionController = value;
+  set interactionController(InteractionController? value) =>
+      _interactionController = value;
 
   InteractionController? get interactionController => _interactionController;
+
+  @override
+  void onLongClick(MouseEvent event) => onMouseLongClickEventData.add(event);
 }

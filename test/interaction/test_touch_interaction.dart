@@ -1,7 +1,6 @@
 import 'package:solid_zoom_display/solid_zoom_display.dart';
 
-class TestTouchInteraction implements DisplayTouchInteraction{
-
+class TestTouchInteraction implements DisplayTouchInteraction {
   final List<TouchEvent> onDoubleTapEventData = <TouchEvent>[];
   final List<TouchEvent> onScaleEndEventData = <TouchEvent>[];
   final List<TouchEvent> onScaleStartEventData = <TouchEvent>[];
@@ -10,10 +9,10 @@ class TestTouchInteraction implements DisplayTouchInteraction{
   final List<TouchEvent> onTouchEndEventData = <TouchEvent>[];
   final List<TouchEvent> onTouchMoveEventData = <TouchEvent>[];
   final List<TouchEvent> onTouchStartEventData = <TouchEvent>[];
+  final List<TouchEvent> onLongTapEventData = <TouchEvent>[];
 
   @override
-  set interactionController(InteractionController value) {
-  }
+  set interactionController(InteractionController value) {}
 
   @override
   void onDoubleTap(TouchEvent event) => onDoubleTapEventData.add(event);
@@ -38,4 +37,7 @@ class TestTouchInteraction implements DisplayTouchInteraction{
 
   @override
   void onTouchStart(TouchEvent event) => onTouchStartEventData.add(event);
+
+  @override
+  void onLongTap(TouchEvent event) => onLongTapEventData.add(event);
 }

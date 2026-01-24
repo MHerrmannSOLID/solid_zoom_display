@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:solid_zoom_display/src/types/event/touch_event.dart';
@@ -13,7 +15,8 @@ void main() {
         verticalScale: 6,
         scale: 7);
 
-    var touchEvent = TouchEvent.fromScaleUpdate(scaleUpdateDetail);
+    var touchEvent =
+        TouchEvent.fromScaleUpdate(scaleUpdateDetail, Point<num>(0, 0));
 
     expect(touchEvent.client.x, 3);
     expect(touchEvent.client.y, 4);
@@ -27,9 +30,10 @@ void main() {
   test(
       'Creation from fromTapDown '
       '--> Converts TapDownDetails correctly', () {
-    var details = TapDownDetails(globalPosition: Offset(1, 2), localPosition: Offset(3, 4));
+    var details = TapDownDetails(
+        globalPosition: Offset(1, 2), localPosition: Offset(3, 4));
 
-    var touchEvent = TouchEvent.fromTapDown(details);
+    var touchEvent = TouchEvent.fromTapEvent(details, const Point<num>(0, 0));
 
     expect(touchEvent.client.x, 3);
     expect(touchEvent.client.y, 4);
@@ -43,7 +47,8 @@ void main() {
   test(
       'Creation from fromScaleStart '
       '--> Converts ScaleStartDetails correctly', () {
-    var details = ScaleStartDetails(focalPoint: Offset(1, 2), localFocalPoint: Offset(3, 4));
+    var details = ScaleStartDetails(
+        focalPoint: Offset(1, 2), localFocalPoint: Offset(3, 4));
 
     var touchEvent = TouchEvent.fromScaleStart(details);
 

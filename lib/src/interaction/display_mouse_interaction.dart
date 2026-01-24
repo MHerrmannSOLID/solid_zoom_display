@@ -1,7 +1,6 @@
 import 'package:solid_zoom_display/solid_zoom_display.dart';
 import 'package:solid_zoom_display/src/types/event/mouse_event.dart';
 
-
 /// This class is the mouse interaction interface.
 /// it defines all methods, on which the display will
 /// call back in case of the according user interaction.
@@ -69,23 +68,24 @@ import 'package:solid_zoom_display/src/types/event/mouse_event.dart';
 ///   }
 /// }
 ///```
-class DisplayMouseInteraction{
-
+class DisplayMouseInteraction {
   const DisplayMouseInteraction();
 
   /// Called whenever the user pushes one mouse button down while hovering over the component.
-  void onMouseDown(MouseEvent event){}
+  void onMouseDown(MouseEvent event) {}
 
   /// Called whenever the mouse changes position while hovering over the component.
-  void onMouseMove(MouseEvent event){}
+  void onMouseMove(MouseEvent event) {}
 
   /// Called whenever the user releases one mouse button down while hovering over the component.
-  void onMouseUp(MouseEvent event){}
+  void onMouseUp(MouseEvent event) {}
 
   /// Called whenever the user uses the scroll wheel while hovering over the component.
-  void onMouseScroll(MouseEvent event){}
+  void onMouseScroll(MouseEvent event) {}
+
+  /// Called whenever the user performs a long click (press and hold) while hovering over the component.
+  void onLongClick(MouseEvent event) {}
 
   /// provides access to the zoom panel [DisplayController] to perform panning or zooming interactions.
-  set interactionController(InteractionController   value){}
-
+  set interactionController(InteractionController value) {}
 }

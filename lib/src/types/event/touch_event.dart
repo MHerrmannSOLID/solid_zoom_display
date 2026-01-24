@@ -1,4 +1,5 @@
 import 'dart:math';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/src/gestures/scale.dart';
 
@@ -10,21 +11,23 @@ class TouchEvent {
         clientPos, applicationPos, const Point(0, 0), imagePos, double.nan);
   }
 
-  factory TouchEvent.fromScaleUpdate(ScaleUpdateDetails details) {
+  factory TouchEvent.fromScaleUpdate(
+      ScaleUpdateDetails details, Point<num> imagePos) {
     final clientPos =
         Point(details.localFocalPoint.dx, details.localFocalPoint.dy);
     final applicationPos = Point(details.focalPoint.dx, details.focalPoint.dy);
     final offset = Point(details.horizontalScale, details.verticalScale);
     return TouchEvent._(
-        clientPos, applicationPos, offset, const Point(0, 0), details.scale);
+        clientPos, applicationPos, offset, imagePos, details.scale);
   }
 
-  factory TouchEvent.fromTapDown(TapDownDetails details) {
+  factory TouchEvent.fromTapEvent(
+      PositionedGestureDetails details, Point<num> imagePos) {
     final clientPos = Point(details.localPosition.dx, details.localPosition.dy);
     final applicationPos =
         Point(details.globalPosition.dx, details.globalPosition.dy);
-    return TouchEvent._(clientPos, applicationPos, const Point(0, 0),
-        const Point(0, 0), double.nan);
+    return TouchEvent._(
+        clientPos, applicationPos, const Point(0, 0), imagePos, double.nan);
   }
 
   factory TouchEvent.fromScaleStart(ScaleStartDetails details) {

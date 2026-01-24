@@ -1,6 +1,6 @@
 import 'package:solid_zoom_display/solid_zoom_display.dart';
 
-class SampleMouseInteraction implements DisplayMouseInteraction {
+class SampleMouseInteraction extends DisplayMouseInteraction {
   static const int rightMouseButton = 2;
   static const int leftMouseButton = 1;
   static const int middleMouseButton = 4;
@@ -73,5 +73,11 @@ class SampleMouseInteraction implements DisplayMouseInteraction {
     if (selection == null) return;
     if (selection.display.width > 0 && selection.display.height > 0)
       _zoomPanel?.zoomController.boxZoomTo(selection.display);
+  }
+
+  @override
+  void onLongClick(MouseEvent event) {
+    print('Long click at (${event.image.x}|${event.image.y}' +
+        ' in image coordinates.');
   }
 }
