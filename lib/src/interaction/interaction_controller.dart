@@ -12,8 +12,10 @@ import 'package:solid_zoom_display/src/types/point_extensions.dart';
 
 class InteractionController extends ChangeNotifier {
   final ScaleGestureRecognizer _scaleGestureRecognizer;
+  final DoubleTapGestureRecognizer _dblClickRecognizer;
   final DoubleTapGestureRecognizer _dblTapRecognizer;
-  final LongPressGestureRecognizer _longPressGestureRecognizer;
+  final LongPressGestureRecognizer _longPressTapGestureRecognizer;
+  final LongPressGestureRecognizer _longPressClickGestureRecognizer;
   final DisplayMouseInteraction _displayMouseInteraction;
   final DisplayTouchInteraction _displayTouchInteraction;
   final ZoomController zoomController;
@@ -36,7 +38,11 @@ class InteractionController extends ChangeNotifier {
           ..dragStartBehavior = DragStartBehavior.start,
         _dblTapRecognizer = DoubleTapGestureRecognizer()
           ..gestureSettings = gestureSettings,
-        _longPressGestureRecognizer = LongPressGestureRecognizer()
+        _dblClickRecognizer = DoubleTapGestureRecognizer()
+          ..gestureSettings = gestureSettings,
+        _longPressTapGestureRecognizer = LongPressGestureRecognizer()
+          ..gestureSettings = gestureSettings,
+        _longPressClickGestureRecognizer = LongPressGestureRecognizer()
           ..gestureSettings = gestureSettings,
         _mouseOverlayBehaviour =
             MouseOverlayBehaviour(overlayProjector: mouseSelectionProjector),
@@ -87,8 +93,12 @@ class InteractionController extends ChangeNotifier {
     _scaleGestureRecognizer.onEnd = (event) => handleScaleStop(event);
     _scaleGestureRecognizer.onUpdate = (event) => handleScaleUpdate(event);
     _dblTapRecognizer.onDoubleTapDown = (event) => handleDoubleTapDown(event);
-    _longPressGestureRecognizer.onLongPressStart =
+    _dblClickRecognizer.onDoubleTapDown =
+        (event) => handleDoubleClickDown(event);
+    _longPressClickGestureRecognizer.onLongPressStart =
         (event) => _handleLongPointerDown(event);
+    _longPressTapGestureRecognizer.onLongPressStart =
+        (event) => _handleLongTapDown(event);
   }
 
   Point _getImgPos(Offset localPosition) =>
@@ -111,9 +121,15 @@ class InteractionController extends ChangeNotifier {
 
   void _handlePointerDown(PointerDownEvent event) {
     _pointerDownCount++;
-    _dblTapRecognizer.addPointer(event);
     _scaleGestureRecognizer.addPointer(event);
-    _longPressGestureRecognizer.addPointer(event);
+    if (event.kind != PointerDeviceKind.mouse) {
+      _dblClickRecognizer.addPointer(event);
+      _longPressClickGestureRecognizer.addPointer(event);
+    }
+    if (event.kind != PointerDeviceKind.touch) {
+      _dblTapRecognizer.addPointer(event);
+      _longPressTapGestureRecognizer.addPointer(event);
+    }
     final imgPos = _getImgPos(event.localPosition);
 
     _handleMouseDown(MouseEvent.fromPointerEvent(event, imgPos));
@@ -128,17 +144,24 @@ class InteractionController extends ChangeNotifier {
   }
 
   void _handlePointerPanZoomStart(PointerPanZoomStartEvent event) {
-    _dblTapRecognizer.addPointerPanZoom(event); // do we need this  ????
+    _dblTapRecognizer.addPointerPanZoom(event);
+    _dblClickRecognizer.addPointerPanZoom(event);
     _scaleGestureRecognizer.addPointerPanZoom(event);
-    _longPressGestureRecognizer.addPointerPanZoom(event);
+    _longPressClickGestureRecognizer.addPointerPanZoom(event);
+    _longPressTapGestureRecognizer.addPointerPanZoom(event);
   }
 
   /// TODO:  To be tested!!!!
   void _handleLongPointerDown(LongPressStartDetails event) {
     final imgPos = _getImgPos(event.localPosition);
-    _displayTouchInteraction.onLongTap(TouchEvent.fromTapEvent(event, imgPos));
     _displayMouseInteraction
         .onLongClick(MouseEvent.fromTapEvent(event, imgPos));
+  }
+
+  /// TODO:  To be tested!!!!
+  void _handleLongTapDown(LongPressStartDetails event) {
+    final imgPos = _getImgPos(event.localPosition);
+    _displayTouchInteraction.onLongTap(TouchEvent.fromTapEvent(event, imgPos));
   }
 
   void _onPointerMove(MouseEvent event) {
@@ -194,6 +217,13 @@ class InteractionController extends ChangeNotifier {
     var imagePos = _getImgPos(details.localPosition);
     _displayTouchInteraction
         .onDoubleTap(TouchEvent.fromTapEvent(details, imagePos));
+  }
+
+  void handleDoubleClickDown(TapDownDetails details) {
+    if (_hasMouseEvents) return;
+    var imagePos = _getImgPos(details.localPosition);
+    _displayMouseInteraction
+        .onDoubleClick(MouseEvent.fromTapEvent(details, imagePos));
   }
 
   void handleMouseEnter(PointerEnterEvent event) {

@@ -88,4 +88,7 @@ class DisplayMouseInteraction {
 
   /// provides access to the zoom panel [DisplayController] to perform panning or zooming interactions.
   set interactionController(InteractionController value) {}
+
+  /// Called whenever the user performs a double click on the component.
+  void onDoubleClick(MouseEvent mouseEvent) {}
 }

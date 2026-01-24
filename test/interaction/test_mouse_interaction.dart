@@ -6,6 +6,7 @@ class TestMouseInteraction implements DisplayMouseInteraction {
   MouseEvent? lastMouseScrollCallArgument;
   MouseEvent? lastMouseUpCallArgument;
   MouseEvent? lastMouseLongClickCallArgument;
+  MouseEvent? lastDblClickCallArgument;
 
   @override
   void onMouseMove(MouseEvent event) => lastMouseMoveCallArgument = event;
@@ -26,4 +27,8 @@ class TestMouseInteraction implements DisplayMouseInteraction {
 
   @override
   void onLongClick(MouseEvent event) => lastMouseLongClickCallArgument = event;
+
+  @override
+  void onDoubleClick(MouseEvent mouseEvent) =>
+      lastDblClickCallArgument = mouseEvent;
 }

@@ -94,4 +94,7 @@ class MouseInteractionMock implements DisplayMouseInteraction {
 
   @override
   void onLongClick(MouseEvent event) => _recentMouseEvent = event;
+
+  @override
+  void onDoubleClick(MouseEvent mouseEvent) => _recentMouseEvent = mouseEvent;
 }
