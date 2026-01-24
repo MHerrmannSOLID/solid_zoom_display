@@ -104,8 +104,10 @@ class InteractionController extends ChangeNotifier {
   void _handlePointerDown(PointerDownEvent event) {
     _dblTapRecognizer.addPointer(event);
     _scaleGestureRecognizer.addPointer(event);
-    _handleMouseDown(MouseEvent.fromPointerEvent(event, _getImgPos(event)));
-    _displayTouchInteraction.onTouchStart(TouchEvent.fromPointerEvent(event));
+    final imgPos = _getImgPos(event);
+    _handleMouseDown(MouseEvent.fromPointerEvent(event, imgPos));
+    _displayTouchInteraction
+        .onTouchStart(TouchEvent.fromPointerEvent(event, imgPos));
   }
 
   void _handleMouseDown(MouseEvent event) {
@@ -135,9 +137,11 @@ class InteractionController extends ChangeNotifier {
 
   void _handleMouseUp(PointerUpEvent event) {
     //if (!_hasMouseEvents) return;
+    var imagePos = _getImgPos(event);
     _displayMouseInteraction
-        .onMouseUp(MouseEvent.fromPointerEvent(event, _getImgPos(event)));
-    _displayTouchInteraction.onTouchEnd(TouchEvent.fromPointerEvent(event));
+        .onMouseUp(MouseEvent.fromPointerEvent(event, imagePos));
+    _displayTouchInteraction
+        .onTouchEnd(TouchEvent.fromPointerEvent(event, imagePos));
   }
 
   void _handleMouseHover(MouseEvent event) {

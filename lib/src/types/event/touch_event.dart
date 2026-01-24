@@ -3,11 +3,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter/src/gestures/scale.dart';
 
 class TouchEvent {
-  factory TouchEvent.fromPointerEvent(PointerEvent event) {
+  factory TouchEvent.fromPointerEvent(PointerEvent event, Point<num> imagePos) {
     final clientPos = Point(event.localPosition.dx, event.localPosition.dy);
     final applicationPos = Point(event.position.dx, event.position.dy);
     return TouchEvent._(
-        clientPos, applicationPos, const Point(0, 0), double.nan);
+        clientPos, applicationPos, const Point(0, 0), imagePos, double.nan);
   }
 
   factory TouchEvent.fromScaleUpdate(ScaleUpdateDetails details) {
@@ -15,42 +15,46 @@ class TouchEvent {
         Point(details.localFocalPoint.dx, details.localFocalPoint.dy);
     final applicationPos = Point(details.focalPoint.dx, details.focalPoint.dy);
     final offset = Point(details.horizontalScale, details.verticalScale);
-    return TouchEvent._(clientPos, applicationPos, offset, details.scale);
+    return TouchEvent._(
+        clientPos, applicationPos, offset, const Point(0, 0), details.scale);
   }
 
   factory TouchEvent.fromTapDown(TapDownDetails details) {
     final clientPos = Point(details.localPosition.dx, details.localPosition.dy);
     final applicationPos =
         Point(details.globalPosition.dx, details.globalPosition.dy);
-    return TouchEvent._(
-        clientPos, applicationPos, const Point(0, 0), double.nan);
+    return TouchEvent._(clientPos, applicationPos, const Point(0, 0),
+        const Point(0, 0), double.nan);
   }
 
   factory TouchEvent.fromScaleStart(ScaleStartDetails details) {
     final clientPos =
         Point(details.localFocalPoint.dx, details.localFocalPoint.dy);
     final applicationPos = Point(details.focalPoint.dx, details.focalPoint.dy);
-    return TouchEvent._(
-        clientPos, applicationPos, const Point(0, 0), double.nan);
+    return TouchEvent._(clientPos, applicationPos, const Point(0, 0),
+        const Point(0, 0), double.nan);
   }
 
   factory TouchEvent.fromScaleStop(ScaleEndDetails details) {
     const zeroPt = Point(0, 0);
-    return TouchEvent._(zeroPt, zeroPt, zeroPt, double.nan);
+    return TouchEvent._(zeroPt, zeroPt, zeroPt, const Point(0, 0), double.nan);
   }
 
   final Point<num> _client;
   final Point<num> _global;
   final Point<num> _offset;
+  final Point<num> _image;
   final double _scale;
 
-  TouchEvent._(this._client, this._global, this._offset, this._scale);
+  TouchEvent._(
+      this._client, this._global, this._offset, this._image, this._scale);
 
   Point<num> get client => _client;
 
   Point<num> get delta => _offset;
 
   Point<num> get global => _global;
+  Point<num> get image => _image;
 
   double get scale => _scale;
 }
