@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'dart:math';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
@@ -7,7 +6,6 @@ import 'package:solid_zoom_display/src/display_canvas/zoom_controller.dart';
 import 'package:solid_zoom_display/src/interaction/selection_overlays/mouse_overlay_behaviour.dart';
 import 'package:solid_zoom_display/src/interaction/selection_overlays/selection_overlay_projector.dart';
 import 'package:solid_zoom_display/src/types/context_menu_interaction.dart';
-import 'package:solid_zoom_display/src/types/event/mouse_event.dart';
 import 'package:solid_zoom_display/src/types/point_extensions.dart';
 
 class InteractionController extends ChangeNotifier {
@@ -21,7 +19,7 @@ class InteractionController extends ChangeNotifier {
   final ZoomController zoomController;
 
   bool _isMouseOnTopOfThisWidget = false;
-  MouseOverlayBehaviour _mouseOverlayBehaviour;
+  final MouseOverlayBehaviour _mouseOverlayBehaviour;
   ContextMenuInteraction _contextMenuInteraction = ContextMenuInteraction();
   MouseEvent _recentMouseEvent = MouseEvent.empty();
 
@@ -154,14 +152,12 @@ class InteractionController extends ChangeNotifier {
     _longPressTapGestureRecognizer.addPointerPanZoom(event);
   }
 
-  /// TODO:  To be tested!!!!
   void _handleLongPointerDown(LongPressStartDetails event) {
     final imgPos = _getImgPos(event.localPosition);
     _displayMouseInteraction
         .onLongClick(MouseEvent.fromTapEvent(event, imgPos));
   }
 
-  /// TODO:  To be tested!!!!
   void _handleLongTapDown(LongPressStartDetails event) {
     final imgPos = _getImgPos(event.localPosition);
     _displayTouchInteraction.onLongTap(TouchEvent.fromTapEvent(event, imgPos));

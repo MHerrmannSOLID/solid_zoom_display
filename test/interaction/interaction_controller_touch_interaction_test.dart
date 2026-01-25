@@ -117,24 +117,6 @@ void main() {
   });
 
   test(
-      'Performing "handleDoubleTapDown" with mouse events enabled (moue entered) '
-      '--> Should ignore interaction since mouse is enabled', () {
-    final testSelectionOverlayProjector = TestSelectionOverlayProjector();
-    final testTouchInteraction = TestTouchInteraction();
-    final interactionController = InteractionController(
-      touchInteraction: testTouchInteraction,
-      mouseSelectionProjector: testSelectionOverlayProjector,
-      zoomController: TestZoomController(),
-    );
-
-    interactionController
-      ..handleMouseEnter(FakePointerEnterEvent(kind: PointerDeviceKind.mouse))
-      ..handleDoubleTapDown(TapDownDetails());
-
-    expect(testTouchInteraction.onDoubleTapEventData.length, 1);
-  });
-
-  test(
       'Performing "handleDoubleTapDown" event '
       '--> Should trigger onDoubleTapEvent', () {
     final testSelectionOverlayProjector = TestSelectionOverlayProjector();

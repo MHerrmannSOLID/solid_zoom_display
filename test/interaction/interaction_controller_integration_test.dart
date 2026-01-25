@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import '../test_helpers/event/test_mouse_interaction.dart';
 import '../test_helpers/helpers.dart';
 import '../test_helpers/test_interaction_controller.dart';
+import 'test_touch_interaction.dart';
 
 void main() {
   testWidgets(
@@ -99,19 +100,132 @@ void main() {
       createCanvasWidget(interactionController: testInteraction),
     );
 
-    // We have to enter with the mouse first, otherwise the controller will run as touch!
-    final gesture = await tester.createGesture(kind: PointerDeviceKind.mouse);
-    addTearDown(gesture.removePointer);
-    await gesture.addPointer(location: tester.canvasWidgetCenter());
-    await gesture
-        .moveTo(tester.canvasWidgetCenter()); // Trigger mouse enter event
-    await tester.pumpAndSettle();
-
     var testPointer = TestPointer(1, PointerDeviceKind.mouse);
-    testPointer.hover(tester.canvasWidgetCenter());
+    await tester
+        .sendEventToBinding(testPointer.hover(tester.canvasWidgetCenter()));
+    await tester.pumpAndSettle();
     await tester.sendEventToBinding(testPointer.scroll(Offset(0, 10)));
     await tester.pumpAndSettle();
 
     expect(testMouseInteraction.onMouseScrollEventData.length, 1);
   });
+
+  testWidgets(
+      'Simulating the long (selection) click event '
+      '--> Should trigger onLongClick only for mouse not for touch ',
+      (WidgetTester tester) async {
+    var testMouseInteraction = TestMouseInteraction();
+    var testTouchInteraction = TestTouchInteraction();
+    var testInteraction = TestInteractionController(
+      mouseInteraction: testMouseInteraction,
+      touchInteraction: testTouchInteraction,
+    );
+    await tester.pumpWidget(
+      createCanvasWidget(interactionController: testInteraction),
+    );
+
+    var testPointer = TestPointer(1, PointerDeviceKind.mouse);
+    await tester
+        .sendEventToBinding(testPointer.hover(tester.canvasWidgetCenter()));
+    await _simmulateLongTapEvent(tester, testPointer);
+    await tester.pumpAndSettle();
+
+    expect(testMouseInteraction.onMouseLongClickEventData.length, 1);
+    expect(testTouchInteraction.onLongTapEventData.length, 0);
+  });
+
+  testWidgets(
+      'Simulating the double click event '
+      '--> Should trigger onMouseDblClick only for mouse not for touch ',
+      (WidgetTester tester) async {
+    var testMouseInteraction = TestMouseInteraction();
+    var testTouchInteraction = TestTouchInteraction();
+    var testInteraction = TestInteractionController(
+      mouseInteraction: testMouseInteraction,
+      touchInteraction: testTouchInteraction,
+    );
+    await tester.pumpWidget(
+      createCanvasWidget(interactionController: testInteraction),
+    );
+
+    var testPointer = TestPointer(1, PointerDeviceKind.mouse);
+    await tester
+        .sendEventToBinding(testPointer.hover(tester.canvasWidgetCenter()));
+    await _simmulateDoublePointerEvent(tester, testPointer);
+    await tester.pumpAndSettle();
+
+    expect(testMouseInteraction.onMouseDblClickEventData.length, 1);
+    expect(testTouchInteraction.onDoubleTapEventData.length, 0);
+  });
+
+  testWidgets(
+      'Simulating the double tap event '
+      '--> Should trigger onDoubleTap only for touch not for mouse ',
+      (WidgetTester tester) async {
+    var testMouseInteraction = TestMouseInteraction();
+    var testTouchInteraction = TestTouchInteraction();
+    var testInteraction = TestInteractionController(
+      mouseInteraction: testMouseInteraction,
+      touchInteraction: testTouchInteraction,
+    );
+    await tester.pumpWidget(
+      createCanvasWidget(interactionController: testInteraction),
+    );
+
+    var testPointer = TestPointer(1, PointerDeviceKind.touch);
+    await _simmulateDoublePointerEvent(tester, testPointer);
+    await tester.pumpAndSettle();
+
+    expect(testMouseInteraction.onMouseDblClickEventData.length, 0);
+    expect(testTouchInteraction.onDoubleTapEventData.length, 1);
+  });
+
+  testWidgets(
+      'Simulating the long tap event '
+      '--> Should trigger onLongTap only for touch not for mouse ',
+      (WidgetTester tester) async {
+    var testMouseInteraction = TestMouseInteraction();
+    var testTouchInteraction = TestTouchInteraction();
+    var testInteraction = TestInteractionController(
+      mouseInteraction: testMouseInteraction,
+      touchInteraction: testTouchInteraction,
+    );
+    await tester.pumpWidget(
+      createCanvasWidget(interactionController: testInteraction),
+    );
+
+    var testPointer = TestPointer(1, PointerDeviceKind.touch);
+    await _simmulateLongTapEvent(tester, testPointer);
+    await tester.pumpAndSettle();
+
+    expect(testMouseInteraction.onMouseLongClickEventData.length, 0);
+    expect(testTouchInteraction.onLongTapEventData.length, 1);
+  });
+}
+
+// Helper methods to simmulate a double tap and long tap events
+// having this is to keep the test code clean and readable
+// ----------------------------------------------------------------
+
+Future<void> _simmulateDoublePointerEvent(
+    WidgetTester tester, TestPointer testPointer) async {
+  await tester
+      .sendEventToBinding(testPointer.down(tester.canvasWidgetCenter()));
+  await tester.pumpAndSettle();
+  await tester.sendEventToBinding(testPointer.up());
+  await tester.pump(const Duration(milliseconds: 100));
+  await tester
+      .sendEventToBinding(testPointer.down(tester.canvasWidgetCenter()));
+  await tester.pumpAndSettle();
+  await tester.sendEventToBinding(testPointer.up());
+  await tester.pumpAndSettle();
+}
+
+Future<void> _simmulateLongTapEvent(
+    WidgetTester tester, TestPointer testPointer) async {
+  await tester
+      .sendEventToBinding(testPointer.down(tester.canvasWidgetCenter()));
+  await tester.pump(const Duration(milliseconds: 600));
+  await tester.sendEventToBinding(testPointer.up());
+  await tester.pumpAndSettle();
 }
