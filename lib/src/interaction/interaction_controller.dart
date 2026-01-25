@@ -213,14 +213,12 @@ class InteractionController extends ChangeNotifier {
   }
 
   void handleDoubleTapDown(TapDownDetails details) {
-    if (_hasMouseEvents) return;
     var imagePos = _getImgPos(details.localPosition);
     _displayTouchInteraction
         .onDoubleTap(TouchEvent.fromTapEvent(details, imagePos));
   }
 
   void handleDoubleClickDown(TapDownDetails details) {
-    if (_hasMouseEvents) return;
     var imagePos = _getImgPos(details.localPosition);
     _displayMouseInteraction
         .onDoubleClick(MouseEvent.fromTapEvent(details, imagePos));
