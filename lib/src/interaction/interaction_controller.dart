@@ -122,11 +122,11 @@ class InteractionController extends ChangeNotifier {
   void _handlePointerDown(PointerDownEvent event) {
     _pointerDownCount++;
     _scaleGestureRecognizer.addPointer(event);
-    if (event.kind != PointerDeviceKind.mouse) {
+    if (event.kind == PointerDeviceKind.mouse) {
       _dblClickRecognizer.addPointer(event);
       _longPressClickGestureRecognizer.addPointer(event);
     }
-    if (event.kind != PointerDeviceKind.touch) {
+    if (event.kind == PointerDeviceKind.touch) {
       _dblTapRecognizer.addPointer(event);
       _longPressTapGestureRecognizer.addPointer(event);
     }
