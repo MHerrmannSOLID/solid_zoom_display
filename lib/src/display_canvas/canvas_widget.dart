@@ -294,6 +294,15 @@ class CanvasWidgetRenderer extends RenderProxyBoxWithHitTestBehavior
       ..setFloat(1, _zoomController.zoomOffset.dy)
       ..setFloat(2, _zoomController.zoomFactor.toDouble());
   }
+
+  @override
+  void dispose() {
+    _interactionController.dispose();
+    _projector.removeListener(_updatePicture);
+    _zoomController.removeListener(markNeedsPaint);
+    clearProjectorLayers();
+    super.dispose();
+  }
 }
 
 /// Helper class to manage additional projector layers

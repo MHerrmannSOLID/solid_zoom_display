@@ -20,8 +20,7 @@ class InteractionController extends ChangeNotifier {
   final DisplayTouchInteraction _displayTouchInteraction;
   final ZoomController zoomController;
 
-  int _pointerDownCount = 0;
-  bool _hasMouseEvents = false;
+  bool _isMouseOnTopOfThisWidget = false;
   MouseOverlayBehaviour _mouseOverlayBehaviour;
   ContextMenuInteraction _contextMenuInteraction = ContextMenuInteraction();
   MouseEvent _recentMouseEvent = MouseEvent.empty();
@@ -111,7 +110,7 @@ class InteractionController extends ChangeNotifier {
           MouseEvent.fromPointerEvent(event, _getImgPos(event.localPosition)));
     }
     if (event is PointerSignalEvent) _handlePointerSignal(event);
-    if (event is PointerUpEvent) _handleMouseUp(event);
+    if (event is PointerUpEvent) _handlePointerUp(event);
     if (event is PointerHoverEvent) {
       _handleMouseHover(
           MouseEvent.fromPointerEvent(event, _getImgPos(event.localPosition)));
@@ -120,26 +119,30 @@ class InteractionController extends ChangeNotifier {
   }
 
   void _handlePointerDown(PointerDownEvent event) {
-    _pointerDownCount++;
     _scaleGestureRecognizer.addPointer(event);
-    if (event.kind == PointerDeviceKind.mouse) {
-      _dblClickRecognizer.addPointer(event);
-      _longPressClickGestureRecognizer.addPointer(event);
-    }
-    if (event.kind == PointerDeviceKind.touch) {
-      _dblTapRecognizer.addPointer(event);
-      _longPressTapGestureRecognizer.addPointer(event);
-    }
     final imgPos = _getImgPos(event.localPosition);
 
+    _handleOnMouseDown(event, imgPos);
+    _handleOnTouchStart(event, imgPos);
+  }
+
+  void _handleOnMouseDown(PointerDownEvent event, Point<num> imgPos) {
+    if (!_isMouseEvent(event)) return;
+    _dblClickRecognizer.addPointer(event);
+    _longPressClickGestureRecognizer.addPointer(event);
     _handleMouseDown(MouseEvent.fromPointerEvent(event, imgPos));
+  }
+
+  void _handleOnTouchStart(PointerDownEvent event, Point<num> imgPos) {
+    if (!_isTouchEvent(event)) return;
+    _dblTapRecognizer.addPointer(event);
+    _longPressTapGestureRecognizer.addPointer(event);
     _displayTouchInteraction
         .onTouchStart(TouchEvent.fromPointerEvent(event, imgPos));
   }
 
   void _handleMouseDown(MouseEvent event) {
-    _pointerDownCount--;
-    if (!_hasMouseEvents) return;
+    if (!_isMouseOnTopOfThisWidget) return;
     _displayMouseInteraction.onMouseDown(event);
   }
 
@@ -174,37 +177,47 @@ class InteractionController extends ChangeNotifier {
   }
 
   void _handlePointerSignal(PointerSignalEvent event) {
-    if (!_hasMouseEvents || event is! PointerScrollEvent) return;
+    if (!_isMouseOnTopOfThisWidget || event is! PointerScrollEvent) return;
     _displayMouseInteraction.onMouseScroll(
         MouseEvent.fromScrollEvent(event, _getImgPos(event.localPosition)));
   }
 
-  void _handleMouseUp(PointerUpEvent event) {
+  void _handlePointerUp(PointerUpEvent event) {
     var imagePos = _getImgPos(event.localPosition);
-    _displayMouseInteraction
-        .onMouseUp(MouseEvent.fromPointerEvent(event, imagePos));
+    _handleMouseUp(event, imagePos);
+    _handleTouchUp(event, imagePos);
+  }
+
+  void _handleTouchUp(PointerUpEvent event, Point<num> imagePos) {
+    if (!_isTouchEvent(event)) return;
     _displayTouchInteraction
         .onTouchEnd(TouchEvent.fromPointerEvent(event, imagePos));
   }
 
+  void _handleMouseUp(PointerUpEvent event, Point<num> imagePos) {
+    if (!_isMouseEvent(event)) return;
+    _displayMouseInteraction
+        .onMouseUp(MouseEvent.fromPointerEvent(event, imagePos));
+  }
+
   void _handleMouseHover(MouseEvent event) {
-    if (!_hasMouseEvents) return;
+    if (!_isMouseOnTopOfThisWidget) return;
     _recentMouseEvent = event;
     _handleMouseMove(event);
   }
 
   void handleScaleStart(ScaleStartDetails details) {
-    if (_hasMouseEvents) return;
+    if (_isMouseOnTopOfThisWidget) return;
     _displayTouchInteraction.onScaleStart(TouchEvent.fromScaleStart(details));
   }
 
   void handleScaleStop(ScaleEndDetails details) {
-    if (_hasMouseEvents) return;
+    if (_isMouseOnTopOfThisWidget) return;
     _displayTouchInteraction.onScaleEnd(TouchEvent.fromScaleStop(details));
   }
 
   void handleScaleUpdate(ScaleUpdateDetails details) {
-    if (_hasMouseEvents) return;
+    if (_isMouseOnTopOfThisWidget) return;
     var imagePos = _getImgPos(details.localFocalPoint);
     _displayTouchInteraction
         .onScaleUpdate(TouchEvent.fromScaleUpdate(details, imagePos));
@@ -224,11 +237,26 @@ class InteractionController extends ChangeNotifier {
         .onDoubleClick(MouseEvent.fromTapEvent(details, imagePos));
   }
 
+  bool _isMouseEvent(PointerEvent event) =>
+      event.kind == PointerDeviceKind.mouse && _isMouseOnTopOfThisWidget;
+  bool _isTouchEvent(PointerEvent event) =>
+      event.kind == PointerDeviceKind.touch;
+
   void handleMouseEnter(PointerEnterEvent event) {
-    _hasMouseEvents = true;
+    _isMouseOnTopOfThisWidget = true;
   }
 
   void handleMouseExit(PointerExitEvent event) {
-    if (!_hasMouseEvents) return;
+    if (!_isMouseOnTopOfThisWidget) return;
+  }
+
+  @override
+  void dispose() {
+    _scaleGestureRecognizer.dispose();
+    _dblClickRecognizer.dispose();
+    _dblTapRecognizer.dispose();
+    _longPressTapGestureRecognizer.dispose();
+    _longPressClickGestureRecognizer.dispose();
+    super.dispose();
   }
 }

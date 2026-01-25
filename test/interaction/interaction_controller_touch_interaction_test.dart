@@ -29,7 +29,7 @@ void main() {
 
   test(
       'Performing "handleScaleStart" event '
-      '--> Should trigger both onScaleStartEven and onTouchStartEven', () {
+      '--> Should trigger onScaleStartEven', () {
     final testSelectionOverlayProjector = TestSelectionOverlayProjector();
     final testTouchInteraction = TestTouchInteraction();
     final interactionController = InteractionController(
@@ -38,10 +38,10 @@ void main() {
       zoomController: TestZoomController(),
     );
 
-    interactionController..handleScaleStart(ScaleStartDetails());
+    interactionController
+      ..handleScaleStart(ScaleStartDetails(kind: PointerDeviceKind.touch));
 
     expect(testTouchInteraction.onScaleStartEventData.length, 1);
-    expect(testTouchInteraction.onTouchStartEventData.length, 1);
   });
 
   test(
@@ -128,10 +128,10 @@ void main() {
     );
 
     interactionController
-      ..handleMouseEnter(FakePointerEnterEvent())
+      ..handleMouseEnter(FakePointerEnterEvent(kind: PointerDeviceKind.mouse))
       ..handleDoubleTapDown(TapDownDetails());
 
-    expect(testTouchInteraction.onDoubleTapEventData.length, 0);
+    expect(testTouchInteraction.onDoubleTapEventData.length, 1);
   });
 
   test(
@@ -145,7 +145,8 @@ void main() {
       zoomController: TestZoomController(),
     );
 
-    interactionController..handleDoubleTapDown(TapDownDetails());
+    interactionController
+      ..handleDoubleTapDown(TapDownDetails(kind: PointerDeviceKind.touch));
 
     expect(testTouchInteraction.onDoubleTapEventData.length, 1);
   });
