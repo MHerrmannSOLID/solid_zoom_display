@@ -81,6 +81,9 @@ class ZoomController extends ChangeNotifier {
     var deltaY = relativeMovement.y;
 
     imgPosition = Point(imgPosition.x + deltaX, imgPosition.y + deltaY);
+    if (imgPosition.x.isNaN || imgPosition.y.isNaN) {
+      imgPosition = Point(0, 0);
+    }
     notifyListeners();
   }
 
