@@ -103,7 +103,6 @@ class ZoomController extends ChangeNotifier {
     var deltaY =
         ((cursorYPosInImg / oldZoomFactor * _zoomFactor) - cursorYPosInImg);
     imgPosition = Point(imgPosition.x - deltaX, imgPosition.y - deltaY);
-
     if (imgPosition.x.isNaN || imgPosition.y.isNaN) {
       imgPosition = Point(0, 0);
       print(
@@ -111,7 +110,6 @@ class ZoomController extends ChangeNotifier {
       print('Current zoom factor: $_zoomFactor');
       print('deltaX: $deltaX, deltaY: $deltaY');
     }
-
     _onZoom(_zoomFactor);
     notifyListeners();
   }
