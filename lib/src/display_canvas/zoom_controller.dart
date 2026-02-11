@@ -62,6 +62,10 @@ class ZoomController extends ChangeNotifier {
       imgPosition = Point<num>(
           animationController.value * deltaX + actImgPosition.x,
           animationController.value * deltaY + actImgPosition.y);
+      if (imgPosition.x.isNaN || imgPosition.y.isNaN) {
+        imgPosition = Point(0, 0);
+      }
+
       notifyListeners();
     });
     animationController.forward(from: 0).whenComplete(
@@ -102,14 +106,13 @@ class ZoomController extends ChangeNotifier {
         ((cursorXPosInImg / oldZoomFactor * _zoomFactor) - cursorXPosInImg);
     var deltaY =
         ((cursorYPosInImg / oldZoomFactor * _zoomFactor) - cursorYPosInImg);
+    deltaX = deltaX.isNaN ? 0 : deltaX;
+    deltaY = deltaY.isNaN ? 0 : deltaY;
     imgPosition = Point(imgPosition.x - deltaX, imgPosition.y - deltaY);
     if (imgPosition.x.isNaN || imgPosition.y.isNaN) {
       imgPosition = Point(0, 0);
-      print(
-          'Warning: Image position is NaN. This can occur when the zoom factor becomes too small. Resetting image position to (0, 0).');
-      print('Current zoom factor: $_zoomFactor');
-      print('deltaX: $deltaX, deltaY: $deltaY');
     }
+
     _onZoom(_zoomFactor);
     notifyListeners();
   }
