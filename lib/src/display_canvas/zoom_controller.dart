@@ -62,9 +62,6 @@ class ZoomController extends ChangeNotifier {
       imgPosition = Point<num>(
           animationController.value * deltaX + actImgPosition.x,
           animationController.value * deltaY + actImgPosition.y);
-      if (imgPosition.x.isNaN || imgPosition.y.isNaN) {
-        imgPosition = Point(0, 0);
-      }
 
       notifyListeners();
     });
@@ -81,9 +78,7 @@ class ZoomController extends ChangeNotifier {
     var deltaY = relativeMovement.y;
 
     imgPosition = Point(imgPosition.x + deltaX, imgPosition.y + deltaY);
-    if (imgPosition.x.isNaN || imgPosition.y.isNaN) {
-      imgPosition = Point(0, 0);
-    }
+
     notifyListeners();
   }
 
@@ -112,9 +107,6 @@ class ZoomController extends ChangeNotifier {
     deltaX = deltaX.isNaN ? 0 : deltaX;
     deltaY = deltaY.isNaN ? 0 : deltaY;
     imgPosition = Point(imgPosition.x - deltaX, imgPosition.y - deltaY);
-    if (imgPosition.x.isNaN || imgPosition.y.isNaN) {
-      imgPosition = Point(0, 0);
-    }
 
     _onZoom(_zoomFactor);
     notifyListeners();
