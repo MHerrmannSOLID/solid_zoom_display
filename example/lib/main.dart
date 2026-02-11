@@ -52,6 +52,7 @@ class MyAppState extends State<MyApp> with TickerProviderStateMixin {
           Expanded(
             child: TabBarView(
               controller: _tabController,
+              physics: const NeverScrollableScrollPhysics(),
               children: <Widget>[
                 FiducualMapExample(),
                 MyZoomDisplay(),

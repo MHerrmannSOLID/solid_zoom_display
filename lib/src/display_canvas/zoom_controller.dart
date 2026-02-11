@@ -10,15 +10,14 @@ class ZoomController extends ChangeNotifier {
   num _zoomFactor = 1;
   Size _widgetScreenSize = Size(1, 1);
   final AnimationController animationController;
-  void Function(num zoom) _onZoom =  ((_) {});
+  void Function(num zoom) _onZoom = ((_) {});
 
   ZoomController({
     this.screenFitMargin = 0.02,
     required this.animationController,
   });
 
-  set zoomHandler(void Function(num zoom) value) =>
-      _onZoom = value;
+  set zoomHandler(void Function(num zoom) value) => _onZoom = value;
 
   Size canvasSize = Size(1, 1);
 
@@ -41,8 +40,8 @@ class ZoomController extends ChangeNotifier {
   Point<num> _getInitialPosition() {
     var imgHeight = canvasSize.height * _canvasImageRatio;
     var imgWidth = canvasSize.width * _canvasImageRatio;
-    return Point(
-        (_widgetScreenSize.width - imgWidth) / 2.0, (_widgetScreenSize.height - imgHeight) / 2.0);
+    return Point((_widgetScreenSize.width - imgWidth) / 2.0,
+        (_widgetScreenSize.height - imgHeight) / 2.0);
   }
 
   void repLayout() {
@@ -52,25 +51,26 @@ class ZoomController extends ChangeNotifier {
     notifyListeners();
   }
 
-  void _doZoomAnimation(
-      Point<num> actImgPosition, num actZoomFactor, Point<num> newImgPosition, num newZoomFactor) {
+  void _doZoomAnimation(Point<num> actImgPosition, num actZoomFactor,
+      Point<num> newImgPosition, num newZoomFactor) {
     var deltaZoom = newZoomFactor - actZoomFactor;
     var deltaX = newImgPosition.x - actImgPosition.x;
     var deltaY = newImgPosition.y - actImgPosition.y;
     animationController.addListener(() {
       _zoomFactor = animationController.value * deltaZoom + actZoomFactor;
       _onZoom(_zoomFactor);
-      imgPosition = Point<num>(animationController.value * deltaX + actImgPosition.x,
+      imgPosition = Point<num>(
+          animationController.value * deltaX + actImgPosition.x,
           animationController.value * deltaY + actImgPosition.y);
       notifyListeners();
     });
     animationController.forward(from: 0).whenComplete(
-        animationController.clearListeners,);
+          animationController.clearListeners,
+        );
   }
 
-  void scaleToFit() =>
-    _doZoomAnimation(imgPosition, _zoomFactor, _getInitialPosition(), _canvasImageRatio);
-
+  void scaleToFit() => _doZoomAnimation(
+      imgPosition, _zoomFactor, _getInitialPosition(), _canvasImageRatio);
 
   void panImageAbout(Point<num> relativeMovement) {
     var deltaX = relativeMovement.x;
@@ -93,20 +93,31 @@ class ZoomController extends ChangeNotifier {
     var oldZoomFactor = _zoomFactor;
 
     _zoomFactor *= (1 + (delta * -_zoomSpeed));
-    _zoomFactor =
-        _zoomFactor.clamp(min(_canvasImageRatio, _maxZoom).toDouble(), _maxZoom.toDouble());
+    _zoomFactor = _zoomFactor.clamp(
+        min(_canvasImageRatio, _maxZoom).toDouble(), _maxZoom.toDouble());
 
     var cursorXPosInImg = mousePosition.x - imgPosition.x;
     var cursorYPosInImg = mousePosition.y - imgPosition.y;
-    var deltaX = ((cursorXPosInImg / oldZoomFactor * _zoomFactor) - cursorXPosInImg);
-    var deltaY = ((cursorYPosInImg / oldZoomFactor * _zoomFactor) - cursorYPosInImg);
+    var deltaX =
+        ((cursorXPosInImg / oldZoomFactor * _zoomFactor) - cursorXPosInImg);
+    var deltaY =
+        ((cursorYPosInImg / oldZoomFactor * _zoomFactor) - cursorYPosInImg);
     imgPosition = Point(imgPosition.x - deltaX, imgPosition.y - deltaY);
+
+    if (imgPosition.x.isNaN || imgPosition.y.isNaN) {
+      imgPosition = Point(0, 0);
+      print(
+          'Warning: Image position is NaN. This can occur when the zoom factor becomes too small. Resetting image position to (0, 0).');
+      print('Current zoom factor: $_zoomFactor');
+      print('deltaX: $deltaX, deltaY: $deltaY');
+    }
 
     _onZoom(_zoomFactor);
     notifyListeners();
   }
 
-  Offset _toOffset(Point<num> point) => Offset(point.x.toDouble(), point.y.toDouble());
+  Offset _toOffset(Point<num> point) =>
+      Offset(point.x.toDouble(), point.y.toDouble());
 
   void boxZoomTo(Rectangle<num> selection) {
     var canvasAspectRatio = _widgetScreenSize.width / _widgetScreenSize.height;
@@ -121,7 +132,8 @@ class ZoomController extends ChangeNotifier {
     newZoomFactor = newZoomFactor
         .clamp(min(_canvasImageRatio, _maxZoom).toDouble(), _maxZoom.toDouble())
         .toDouble();
-    var newImgPosition = _calculateBoxPosition(selection, newZoomFactor, isWidthDominant);
+    var newImgPosition =
+        _calculateBoxPosition(selection, newZoomFactor, isWidthDominant);
 
     _doZoomAnimation(imgPosition, _zoomFactor, newImgPosition, newZoomFactor);
   }
@@ -132,11 +144,16 @@ class ZoomController extends ChangeNotifier {
         ? _widgetScreenSize.width / selection.width
         : _widgetScreenSize.height / selection.height;
     var leftSpacing =
-        (_widgetScreenSize.width - selection.width * clientZoomFactor) * 0.5 / clientZoomFactor;
+        (_widgetScreenSize.width - selection.width * clientZoomFactor) *
+            0.5 /
+            clientZoomFactor;
     var topSpacing =
-        (_widgetScreenSize.height - selection.height * clientZoomFactor) * 0.5 / clientZoomFactor;
+        (_widgetScreenSize.height - selection.height * clientZoomFactor) *
+            0.5 /
+            clientZoomFactor;
 
-    var topLeftPosition = Point<num>(selection.left - leftSpacing, selection.top - topSpacing);
+    var topLeftPosition =
+        Point<num>(selection.left - leftSpacing, selection.top - topSpacing);
 
     var imgTopLeft = asImagePosition(_toOffset(topLeftPosition));
     ;
@@ -144,11 +161,12 @@ class ZoomController extends ChangeNotifier {
   }
 
   void reLayout(Size widgetSize, Size projectorSize) {
-    if(widgetSize == _widgetScreenSize && projectorSize == canvasSize) return;
+    if (widgetSize == _widgetScreenSize && projectorSize == canvasSize) return;
     widgetScreenSize = widgetSize;
     canvasSize = projectorSize;
     repLayout();
   }
 
-  Offset get zoomOffset => Offset(imgPosition.x.toDouble(), imgPosition.y.toDouble());
+  Offset get zoomOffset =>
+      Offset(imgPosition.x.toDouble(), imgPosition.y.toDouble());
 }
