@@ -2,6 +2,7 @@ import 'dart:ui';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 import 'package:solid_zoom_display/solid_zoom_display.dart';
 import 'package:solid_zoom_display/src/display_canvas/zoom_controller.dart';
@@ -141,7 +142,19 @@ class CanvasWidgetRenderer extends RenderProxyBoxWithHitTestBehavior
     var canvas = Canvas(pictureRecorder);
     _projector.copyToContext(canvas);
     _picture = pictureRecorder.endRecording();
-    markNeedsLayout();
+
+    // Check if we're currently in layout phase
+    if (owner?.debugDoingLayout ?? false) {
+      // Defer layout request until after current layout completes
+      SchedulerBinding.instance.addPostFrameCallback((_) {
+        if (attached) {
+          markNeedsLayout();
+        }
+      });
+    } else {
+      // Safe to request layout immediately
+      markNeedsLayout();
+    }
   }
 
   /// Add an additional projector layer (e.g., for sprites, overlays)
