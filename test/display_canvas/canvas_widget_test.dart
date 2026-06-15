@@ -169,6 +169,38 @@ void main() {
   });
 
   testWidgets(
+      'Trigger a repaint after pumping '
+      '--> display should still see the correct size',
+      (WidgetTester tester) async {
+    final testProjector = TestProjector()..size = Size(200, 300);
+    final testZoomController = TestZoomController();
+    var notifier = ChangeNotifier();
+    await tester.pumpWidget(
+      ListenableBuilder(
+        listenable: notifier,
+        builder: (context, _) {
+          return createCanvasWidget(
+            projector: testProjector,
+            zoomController: testZoomController,
+          );
+        },
+      ),
+    );
+
+    // calls relayout on creation of the widget
+
+    testProjector.triggerNotification();
+    await tester.pumpAndSettle();
+    notifier.notifyListeners();
+    await tester.pumpAndSettle();
+
+    // get the current CanvasWidget
+    var cWdiget = tester.firstWidget(find.byType(CanvasWidget)) as CanvasWidget;
+
+    expect(cWdiget.projector.size, Size(200, 300));
+  });
+
+  testWidgets(
       'Creating a fresh instance of the display canvas widget '
       '--> the widget should have the correc instance of the projector',
       (WidgetTester tester) async {
