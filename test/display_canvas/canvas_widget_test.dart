@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:solid_zoom_display/solid_zoom_display.dart';
+import 'package:solid_zoom_display/src/display_canvas/canvas_widget.dart';
 import '../test_helpers/helpers.dart';
 import '../test_helpers/test_interaction_controller.dart';
 import '../test_helpers/test_projector.dart';
@@ -165,6 +166,30 @@ void main() {
     secondProjector.triggerNotification();
     expect(secondProjector.copyToContextCalls, 2);
     expect(firstProjector.copyToContextCalls, 2);
+  });
+
+  testWidgets(
+      'Creating a fresh instance of the display canvas widget '
+      '--> the widget should have the correc instance of the projector',
+      (WidgetTester tester) async {
+    final testProjector = TestProjector()..size = Size(100, 100);
+    final testZoomController = TestZoomController();
+    await tester.pumpWidget(
+      createCanvasWidget(
+        projector: testProjector,
+        zoomController: testZoomController,
+      ),
+    );
+
+    // calls relayout on creation of the widget
+
+    testProjector.triggerNotification();
+    await tester.pump();
+
+    // get the current CanvasWidget
+    var cWdiget = tester.firstWidget(find.byType(CanvasWidget)) as CanvasWidget;
+
+    expect(cWdiget.projector.size, Size(100, 100));
   });
 
   testWidgets(
