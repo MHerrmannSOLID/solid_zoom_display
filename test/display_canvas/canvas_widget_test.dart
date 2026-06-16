@@ -1,4 +1,5 @@
 import 'dart:math';
+import 'dart:ui';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -263,12 +264,43 @@ void main() {
 
     expect(dummyOverlayProjector.repaintCalled, true);
   });
+
+  testWidgets(
+      'Setting a custom projector  '
+      '--> The projector should receive zoom events `onZoom`',
+      (WidgetTester tester) async {
+    final testProjector = TestProjector();
+
+    final dummyOverlayProjector = DummyOverlayProjector();
+    final dummyInteraction = DummyMouseInteraction();
+    await tester.pumpWidget(
+      createCanvasWidget(
+        projector: testProjector,
+        mouseInteraction: dummyInteraction,
+        selectionProjector: dummyOverlayProjector,
+      ),
+    );
+
+    await tester.pumpAndSettle();
+    dummyInteraction.TiggerZoom();
+    await tester.pump();
+
+    expect(testProjector.zoomCallCount, greaterThan(0));
+  });
 }
 
 class DummyMouseInteraction extends DisplayMouseInteraction {
+  InteractionController? _interactionController;
+
   @override
   set interactionController(InteractionController value) {
     value.startSelection(const Point(100, 100));
+    _interactionController = value;
+  }
+
+  void TiggerZoom() {
+    _interactionController?.zoomController
+        .scaleAbout(delta: 100, mousePosition: const Point(100, 100));
   }
 }
 

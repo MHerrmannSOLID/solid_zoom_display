@@ -8,6 +8,7 @@ class TestProjector extends DisplayProjector with TestableChangeNotifier {
   Size _size = Size(1, 1);
 
   num recentZoom = double.nan;
+  int zoomCallCount = 0;
 
   ZoomController? recentZoomController;
 
@@ -33,6 +34,7 @@ class TestProjector extends DisplayProjector with TestableChangeNotifier {
   void onZoom(num zoom) {
     super.onZoom(zoom);
     recentZoom = zoom;
+    zoomCallCount++;
   }
 
   @override
