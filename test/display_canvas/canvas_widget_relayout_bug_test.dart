@@ -133,6 +133,9 @@ class ProjectorThatNotifiesOnZoom extends ChangeNotifier
   Size get size => _size;
 
   @override
+  Offset get origin => Offset.zero;
+
+  @override
   void copyToContext(Canvas canvas) {
     // Simple drawing
     canvas.drawRect(
