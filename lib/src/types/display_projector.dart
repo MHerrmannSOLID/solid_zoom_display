@@ -8,8 +8,6 @@ class DisplayProjector extends ChangeNotifier {
 
   Size get size => Size(1, 1);
 
-  Offset get origin => Offset.zero;
-
   void onZoom(num zoom) {}
 
   void scaleToFit() => _zoomController?.scaleToFit();
